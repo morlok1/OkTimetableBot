@@ -1,5 +1,6 @@
 package Bot;
 
+import Data.ConstantManager;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
@@ -15,6 +16,18 @@ public class BotHandler implements HttpHandler {
 
     @Override
     public void handle(HttpExchange httpExchange) throws IOException {
+
+        //Я искренне надеюсь на то, что здесь я получу строчку api.ok.ru
+        String host = httpExchange.getRequestHeaders().get("Host").get(0);
+
+        switch (host) {
+            case ConstantManager.okHost:
+                parseMessageFromOk(httpExchange);
+                break;
+        }
+    }
+
+    private void parseMessageFromOk(HttpExchange httpExchange) throws IOException {
         InputStream is = httpExchange.getRequestBody();
         BufferedReader reader = new BufferedReader(new InputStreamReader(is));
         String line;
