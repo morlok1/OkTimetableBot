@@ -5,11 +5,13 @@ import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.http.*;
 
-
+/**
+ * Интерфейс, содержащий используемые запросы к api ОК
+ * -Отправка сообщений
+ * -Получение списка подписанных хостов на webhook`и
+ * -Осуществление подписки на webhook`и
+ */
 public interface OkApi {
-
-    @GET("/graph/me/messages")
-    Call<ResponseBody> getMessages(@Query("access_token") String token, @Query("chat_id") String chatId);
 
     @POST("/graph/me/messages")
     Call<ResponseBody> sendMessage(@Body RequestBody body, @Query("access_token") String token);

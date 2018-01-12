@@ -16,14 +16,18 @@ import java.net.InetSocketAddress;
 
 import static java.lang.System.exit;
 
+/**
+ * Класс сервера, осуществляющий общение бота с сетью.
+ * Работает с api ОК.
+ * Отдает html-страницы ввода расписания и благодарности
+ */
 public class BotServer {
 
     private static final Logger log = LoggerFactory.getLogger(BotServer.class);
     private static BotServer theInstance;
-
     private final HttpServer server;
-
     private OkApi okApi;
+
 
     public static BotServer getInstance() throws IOException {
         if (theInstance == null) {
@@ -32,7 +36,6 @@ public class BotServer {
 
         return theInstance;
     }
-
 
     private BotServer() throws IOException {
 
@@ -59,10 +62,11 @@ public class BotServer {
 
     }
 
-    public HttpServer getServer() {
-        return server;
-    }
-
+    /**
+     * Отправляет заданное текстовое сообщение в заданный чат в ОК
+     * @param message - сообщение
+     * @param chatId - идентификатор чата ОК
+     */
     public void sendMessage(String message, String chatId) {
 
         RequestBody body = RequestBody.create(MediaType.parse("application/json;charset=utf-8"),
@@ -75,6 +79,10 @@ public class BotServer {
         }
     }
 
+    /**
+     * Осуществляет подписку на webhook`и от ОК
+     * Предварительно проверяет её наличие
+     */
     private void setSubscribes() {
         String endpoint = ConstantManager.serverURI + ":" + ConstantManager.port + ConstantManager.endpointURI;
         if (!checkSubscribes(endpoint)) {
@@ -103,6 +111,12 @@ public class BotServer {
         }
     }
 
+    /**
+     * Осуществляет проверку подписки на webhook`и от ОК по указанному endpoint`у
+     * @param endpoint
+     * @return -    true - есть подписка
+     *              false - нет подписки
+     */
     private boolean checkSubscribes(String endpoint) {
         String message = "";
 

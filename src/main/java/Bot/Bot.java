@@ -11,14 +11,17 @@ import java.util.Random;
 
 import static Data.ConstantManager.*;
 
+/**
+ * Класс, осуществляющий общую работу бота:
+ * -Создание\Пересоздание расписания
+ * -Возвращение строки, содержащей результирующее расписание
+ */
 public class Bot {
 
     private static final Logger log = LoggerFactory.getLogger(Bot.class);
-
     private static Bot theInstance;
-
-
     private HashMap<String, GroupOfUser> groups;
+
 
     public static Bot getInstance() {
         if (theInstance == null) {
@@ -32,6 +35,12 @@ public class Bot {
         groups = new HashMap<>();
     }
 
+    /**
+     * Производит создание новой группы с заданным идентификатором чата
+     * В случае существования - оповещение об этом и предложение пересоздать расписание
+     * @param chatId - идентификатор
+     * @return
+     */
     public String generateNewGroup(String chatId) {
         String result = "";
         if (groups.containsKey(chatId)) {
@@ -45,12 +54,31 @@ public class Bot {
         return result;
     }
 
+    /**
+     * Удаляет расписание по переданному идентификатору и создает новое
+     * В случае, если расписания не существует - передаёт оповещение
+     * @param chatId - идентификатор
+     * @return
+     */
     public String clearAndGenerateGroup(String chatId) {
-        groups.remove(chatId);
+        String result;
+        if (groups.containsKey(chatId)) {
+            log.warn("Attempt to wipe the timetable");
+            result = "Вы ещё не создали расписания.\\\\nЧтобы создать расписание отправьте 'Расписание'\"";
+        } else {
+            groups.remove(chatId);
+            result = generateNewGroup(chatId);
+        }
 
-        return generateNewGroup(chatId);
+        return result;
     }
 
+    /**
+     * Генерирует сообщение, содержащее результирующее расписание
+     * по переданному идентификатору сообщения
+     * @param chatId - идентификатор
+     * @return
+     */
     public String getTimetable(String chatId) {
         log.info("Start generate timetable");
         String result = "";
@@ -83,20 +111,11 @@ public class Bot {
         return result;
     }
 
-
-    public String generateHash() {
-        StringBuilder builder = new StringBuilder();
-        Random random = new Random();
-
-        for (int i=0; i< hashLength; i++) {
-            builder.append(
-                    alphabet[
-                            random.nextInt(alphabet.length - 1)]);
-        }
-
-        return builder.toString();
-    }
-
+    /**
+     *  Возвращает расписание по переданному идентификатору
+     * @param chatID - идентификатор
+     * @return
+     */
     public GroupOfUser getGroupByChatID(String chatID) {
         return groups.get(chatID);
     }

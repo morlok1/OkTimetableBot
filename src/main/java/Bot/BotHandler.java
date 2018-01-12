@@ -11,18 +11,37 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.util.Arrays;
 
+/**
+ * Класс, осуществляющий обработку входящих на сервер запросов:
+ * -webhook`и от ОК
+ * -запрос на передачу фавикона (но это не точно)
+ * -запрос на передачу html-страницы с формой ввода расписания на неделю
+ * -запрос на обработку переданой формы
+ * -
+ */
 public class BotHandler implements HttpHandler {
 
     private static final Logger log = LoggerFactory.getLogger(BotHandler.class);
-
     private BotServer server;
     private Bot bot;
+
 
     public BotHandler(BotServer server) throws IOException {
         this.server = server;
         bot = Bot.getInstance();
     }
 
+    /**
+     * Определяет тип входящего запроса и передает управление соответствующему методу
+     * Типы:
+     * -запрос фавикона
+     * -webhook от ОК
+     * -запрос на передачу html-страницы
+     * -запрос на обработку формы
+     * -неизвестный запрос - ничего не передаём и удивляемся в логи
+     * @param httpExchange
+     * @throws IOException
+     */
     @Override
     public void handle(HttpExchange httpExchange) throws IOException {
 
@@ -48,11 +67,16 @@ public class BotHandler implements HttpHandler {
 
     }
 
+    /**
+     * Отправляет фавикон (но это не точно)
+     * @param httpExchange
+     * @throws IOException
+     */
     private void sendFavicon(HttpExchange httpExchange) throws IOException {
         String line;
         StringBuilder builder = new StringBuilder();
         ClassLoader cl = this.getClass().getClassLoader();
-        InputStream is = cl.getResourceAsStream("images/favicon.ico");
+        InputStream is = cl.getResourceAsStream(ConstantManager.favikonUri);
         BufferedReader reader = new BufferedReader(new InputStreamReader(is));
         while ((line = reader.readLine()) != null) {
             builder.append(line);
@@ -64,35 +88,14 @@ public class BotHandler implements HttpHandler {
         os.close();
     }
 
-    private void parseMessageFromWebForm(HttpExchange httpExchange) throws IOException {
-        sendThanksPage(httpExchange);
-
-        String uri = httpExchange.getRequestURI().toString();
-        log.info("Parse web-form answer: " + uri);
-        ///?user-name-value=Fs&monday=2&tuesday=2&wednesday=2&thursday=2&friday=3&saturday=2&sunday=2&id=chat%3AC3e11972edc00
-
-        UsersTimetable.EmploymentState[] employmentStates = new UsersTimetable.EmploymentState[7];
-
-        employmentStates[0] = getEmploymentStateByIndex(Integer.parseInt(uri.substring(uri.indexOf("monday") + 7,uri.indexOf("monday") + 8)));
-        employmentStates[1] = getEmploymentStateByIndex(Integer.parseInt(uri.substring(uri.indexOf("tuesday") + 8,uri.indexOf("tuesday") + 9)));
-        employmentStates[2] = getEmploymentStateByIndex(Integer.parseInt(uri.substring(uri.indexOf("wednesday") + 10,uri.indexOf("wednesday") + 11)));
-        employmentStates[3] = getEmploymentStateByIndex(Integer.parseInt(uri.substring(uri.indexOf("thursday") + 9,uri.indexOf("thursday") + 10)));
-        employmentStates[4] = getEmploymentStateByIndex(Integer.parseInt(uri.substring(uri.indexOf("friday") + 7,uri.indexOf("friday") + 8)));
-        employmentStates[5] = getEmploymentStateByIndex(Integer.parseInt(uri.substring(uri.indexOf("saturday") + 9,uri.indexOf("saturday") + 10)));
-        employmentStates[6] = getEmploymentStateByIndex(Integer.parseInt(uri.substring(uri.indexOf("sunday") + 7,uri.indexOf("sunday") + 8)));
-
-        String chatID = uri.substring(uri.indexOf("&id=") + 4, uri.length()).replace("%3A",":");
-
-        log.info("Parse web-form answer complete. Result: chatID:" + chatID + " timetable: " + Arrays.toString(employmentStates));
-
-        bot.getGroupByChatID(chatID).addUser(employmentStates);
-        //UsersTimetable user = new UsersTimetable();
-
-    }
-
+    /**
+     * Отправляет страницу благодарности за заполненную форму
+     * @param httpExchange
+     * @throws IOException
+     */
     private void sendThanksPage(HttpExchange httpExchange) throws IOException {
         ClassLoader cl = this.getClass().getClassLoader();
-        InputStream is = cl.getResourceAsStream("html/thanks.html");
+        InputStream is = cl.getResourceAsStream(ConstantManager.thanksUri);
         BufferedReader reader = new BufferedReader(new InputStreamReader(is));
 
         OutputStream os = httpExchange.getResponseBody();
@@ -111,13 +114,21 @@ public class BotHandler implements HttpHandler {
         os.close();
     }
 
+    /**
+     * Производит сборку и отправку страницы с формой
+     * Сборка:
+     * -вставка идентификатор чата, закрепленного за данной ссылкой
+     * -вставка актуального адреса сервера обработки формы
+     * @param httpExchange
+     * @throws IOException
+     */
     private void sendWebForm(HttpExchange httpExchange) throws IOException {
 
         String chatId = httpExchange.getRequestURI().toString();
         chatId = chatId.substring(chatId.indexOf("chat"));
 
         ClassLoader cl = this.getClass().getClassLoader();
-        InputStream is = cl.getResourceAsStream("html/timetableForm.html");
+        InputStream is = cl.getResourceAsStream(ConstantManager.formUri);
         BufferedReader reader = new BufferedReader(new InputStreamReader(is));
 
         OutputStream os = httpExchange.getResponseBody();
@@ -141,6 +152,15 @@ public class BotHandler implements HttpHandler {
 
     }
 
+    /**
+     * Производит разбор сообщения от ОК, определяя цель сообщения:
+     * -Создание расписание
+     * -Затирание старого расписания и создания нового
+     * -Вывод результирующего расписания
+     * -Неизвестное сообщение - вывод информации о синтаксисе запросов бота
+     * @param httpExchange
+     * @throws IOException
+     */
     private void parseMessageFromOk(HttpExchange httpExchange) throws IOException {
         InputStream is = httpExchange.getRequestBody();
         BufferedReader reader = new BufferedReader(new InputStreamReader(is));
@@ -196,6 +216,42 @@ public class BotHandler implements HttpHandler {
         }
     }
 
+    /**
+     * Производит разбор GET-запроса от формы с заполненным расписанием на неделю и его добавление
+     * @param httpExchange
+     * @throws IOException
+     */
+    private void parseMessageFromWebForm(HttpExchange httpExchange) throws IOException {
+        sendThanksPage(httpExchange);
+
+        String uri = httpExchange.getRequestURI().toString();
+        log.info("Parse web-form answer: " + uri);
+        ///?user-name-value=Fs&monday=2&tuesday=2&wednesday=2&thursday=2&friday=3&saturday=2&sunday=2&id=chat%3AC3e11972edc00
+
+        UsersTimetable.EmploymentState[] employmentStates = new UsersTimetable.EmploymentState[7];
+
+        employmentStates[0] = getEmploymentStateByIndex(Integer.parseInt(uri.substring(uri.indexOf("monday") + 7,uri.indexOf("monday") + 8)));
+        employmentStates[1] = getEmploymentStateByIndex(Integer.parseInt(uri.substring(uri.indexOf("tuesday") + 8,uri.indexOf("tuesday") + 9)));
+        employmentStates[2] = getEmploymentStateByIndex(Integer.parseInt(uri.substring(uri.indexOf("wednesday") + 10,uri.indexOf("wednesday") + 11)));
+        employmentStates[3] = getEmploymentStateByIndex(Integer.parseInt(uri.substring(uri.indexOf("thursday") + 9,uri.indexOf("thursday") + 10)));
+        employmentStates[4] = getEmploymentStateByIndex(Integer.parseInt(uri.substring(uri.indexOf("friday") + 7,uri.indexOf("friday") + 8)));
+        employmentStates[5] = getEmploymentStateByIndex(Integer.parseInt(uri.substring(uri.indexOf("saturday") + 9,uri.indexOf("saturday") + 10)));
+        employmentStates[6] = getEmploymentStateByIndex(Integer.parseInt(uri.substring(uri.indexOf("sunday") + 7,uri.indexOf("sunday") + 8)));
+
+        String chatID = uri.substring(uri.indexOf("&id=") + 4, uri.length()).replace("%3A",":");
+
+        log.info("Parse web-form answer complete. Result: chatID:" + chatID + " timetable: " + Arrays.toString(employmentStates));
+
+        bot.getGroupByChatID(chatID).addUser(employmentStates);
+        //UsersTimetable user = new UsersTimetable();
+
+    }
+
+    /**
+     * Возвращает сущность EmploymentState по цифровому индексу
+     * @param index
+     * @return
+     */
     private UsersTimetable.EmploymentState getEmploymentStateByIndex(int index) {
         switch (index) {
             case 1:
