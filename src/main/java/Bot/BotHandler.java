@@ -29,6 +29,7 @@ public class BotHandler implements HttpHandler {
         if (httpExchange.getRequestURI().toString().equals("/favicon.ico")) {
             //Отправим фавикон, что ли
             log.info("Request to send a favicon");
+            sendFavicon(httpExchange);
         } else if (httpExchange.getRequestURI().toString().equals("/forOkWebhooks")) {
             //Отвечаем в ОК
             parseMessageFromOk(httpExchange);
@@ -47,16 +48,24 @@ public class BotHandler implements HttpHandler {
 
     }
 
-    private void parseMessageFromWebForm(HttpExchange httpExchange) {
-        byte[] page = "Well Done! You can go away!".getBytes();
-        OutputStream os = httpExchange.getResponseBody();
-        try {
-            httpExchange.sendResponseHeaders(200, page.length);
-            os.write(page);
-            os.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+    private void sendFavicon(HttpExchange httpExchange) throws IOException {
+        String line;
+        StringBuilder builder = new StringBuilder();
+        ClassLoader cl = this.getClass().getClassLoader();
+        InputStream is = cl.getResourceAsStream("images/favicon.ico");
+        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+        while ((line = reader.readLine()) != null) {
+            builder.append(line);
         }
+        byte[] bytes = builder.toString().getBytes();
+        httpExchange.sendResponseHeaders(200, bytes.length);
+        OutputStream os = httpExchange.getResponseBody();
+        os.write(bytes);
+        os.close();
+    }
+
+    private void parseMessageFromWebForm(HttpExchange httpExchange) throws IOException {
+        sendThanksPage(httpExchange);
 
         String uri = httpExchange.getRequestURI().toString();
         log.info("Parse web-form answer: " + uri);
@@ -64,13 +73,13 @@ public class BotHandler implements HttpHandler {
 
         UsersTimetable.EmploymentState[] employmentStates = new UsersTimetable.EmploymentState[7];
 
-        employmentStates[0] = getEmploementStateByIndex(Integer.parseInt(uri.substring(uri.indexOf("monday") + 7,uri.indexOf("monday") + 8)));
-        employmentStates[1] = getEmploementStateByIndex(Integer.parseInt(uri.substring(uri.indexOf("tuesday") + 8,uri.indexOf("tuesday") + 9)));
-        employmentStates[2] = getEmploementStateByIndex(Integer.parseInt(uri.substring(uri.indexOf("wednesday") + 10,uri.indexOf("wednesday") + 11)));
-        employmentStates[3] = getEmploementStateByIndex(Integer.parseInt(uri.substring(uri.indexOf("thursday") + 9,uri.indexOf("thursday") + 10)));
-        employmentStates[4] = getEmploementStateByIndex(Integer.parseInt(uri.substring(uri.indexOf("friday") + 7,uri.indexOf("friday") + 8)));
-        employmentStates[5] = getEmploementStateByIndex(Integer.parseInt(uri.substring(uri.indexOf("saturday") + 9,uri.indexOf("saturday") + 10)));
-        employmentStates[6] = getEmploementStateByIndex(Integer.parseInt(uri.substring(uri.indexOf("sunday") + 7,uri.indexOf("sunday") + 8)));
+        employmentStates[0] = getEmploymentStateByIndex(Integer.parseInt(uri.substring(uri.indexOf("monday") + 7,uri.indexOf("monday") + 8)));
+        employmentStates[1] = getEmploymentStateByIndex(Integer.parseInt(uri.substring(uri.indexOf("tuesday") + 8,uri.indexOf("tuesday") + 9)));
+        employmentStates[2] = getEmploymentStateByIndex(Integer.parseInt(uri.substring(uri.indexOf("wednesday") + 10,uri.indexOf("wednesday") + 11)));
+        employmentStates[3] = getEmploymentStateByIndex(Integer.parseInt(uri.substring(uri.indexOf("thursday") + 9,uri.indexOf("thursday") + 10)));
+        employmentStates[4] = getEmploymentStateByIndex(Integer.parseInt(uri.substring(uri.indexOf("friday") + 7,uri.indexOf("friday") + 8)));
+        employmentStates[5] = getEmploymentStateByIndex(Integer.parseInt(uri.substring(uri.indexOf("saturday") + 9,uri.indexOf("saturday") + 10)));
+        employmentStates[6] = getEmploymentStateByIndex(Integer.parseInt(uri.substring(uri.indexOf("sunday") + 7,uri.indexOf("sunday") + 8)));
 
         String chatID = uri.substring(uri.indexOf("&id=") + 4, uri.length()).replace("%3A",":");
 
@@ -81,13 +90,34 @@ public class BotHandler implements HttpHandler {
 
     }
 
+    private void sendThanksPage(HttpExchange httpExchange) throws IOException {
+        ClassLoader cl = this.getClass().getClassLoader();
+        InputStream is = cl.getResourceAsStream("html/thanks.html");
+        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+
+        OutputStream os = httpExchange.getResponseBody();
+        String line;
+        StringBuilder builder = new StringBuilder();
+
+        log.info("Sending a web page with form");
+        while ((line = reader.readLine()) != null) {
+
+            builder.append(line);
+
+        }
+        byte[] page = builder.toString().getBytes();
+        httpExchange.sendResponseHeaders(200, page.length);
+        os.write(page);
+        os.close();
+    }
+
     private void sendWebForm(HttpExchange httpExchange) throws IOException {
 
         String chatId = httpExchange.getRequestURI().toString();
         chatId = chatId.substring(chatId.indexOf("chat"));
 
         ClassLoader cl = this.getClass().getClassLoader();
-        InputStream is = cl.getResourceAsStream("html/index.html");
+        InputStream is = cl.getResourceAsStream("html/timetableForm.html");
         BufferedReader reader = new BufferedReader(new InputStreamReader(is));
 
         OutputStream os = httpExchange.getResponseBody();
@@ -166,7 +196,7 @@ public class BotHandler implements HttpHandler {
         }
     }
 
-    private UsersTimetable.EmploymentState getEmploementStateByIndex(int index) {
+    private UsersTimetable.EmploymentState getEmploymentStateByIndex(int index) {
         switch (index) {
             case 1:
                 return UsersTimetable.EmploymentState.FREE;

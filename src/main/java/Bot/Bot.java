@@ -98,7 +98,6 @@ public class Bot {
     }
 
     public GroupOfUser getGroupByChatID(String chatID) {
-        log.info("Getter of chat " + chatID);
         return groups.get(chatID);
     }
 
