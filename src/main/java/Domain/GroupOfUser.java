@@ -14,11 +14,12 @@ public class GroupOfUser {
     }
 
     public void addUser(UsersTimetable.EmploymentState[] employmentStates) {
+        System.out.println("WHAT");
         users.add(new UsersTimetable(employmentStates));
     }
 
     public UsersTimetable.EmploymentState[] getGeneralTimetable() {
-
+        System.out.println("Всего пользователей: " + users.size());
         UsersTimetable.EmploymentState[] generalTimetable = new UsersTimetable.EmploymentState[7];
         for (int i=0; i<generalTimetable.length; i++) {
             generalTimetable[i] = UsersTimetable.EmploymentState.FREE;

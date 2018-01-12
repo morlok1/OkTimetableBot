@@ -26,7 +26,10 @@ public class BotHandler implements HttpHandler {
     @Override
     public void handle(HttpExchange httpExchange) throws IOException {
 
-        if (httpExchange.getRequestURI().toString().equals("/forOkWebhooks")) {
+        if (httpExchange.getRequestURI().toString().equals("/favicon.ico")) {
+            //Отправим фавикон, что ли
+            log.info("Request to send a favicon");
+        } else if (httpExchange.getRequestURI().toString().equals("/forOkWebhooks")) {
             //Отвечаем в ОК
             parseMessageFromOk(httpExchange);
         } else if (httpExchange.getRequestURI().toString().contains("/?id=")) {
@@ -69,7 +72,7 @@ public class BotHandler implements HttpHandler {
         employmentStates[5] = getEmploementStateByIndex(Integer.parseInt(uri.substring(uri.indexOf("saturday") + 9,uri.indexOf("saturday") + 10)));
         employmentStates[6] = getEmploementStateByIndex(Integer.parseInt(uri.substring(uri.indexOf("sunday") + 7,uri.indexOf("sunday") + 8)));
 
-        String chatID = uri.substring(uri.indexOf("&id=") + 4, uri.length()).replace("%",":");
+        String chatID = uri.substring(uri.indexOf("&id=") + 4, uri.length()).replace("%3A",":");
 
         log.info("Parse web-form answer complete. Result: chatID:" + chatID + " timetable: " + Arrays.toString(employmentStates));
 
@@ -97,6 +100,9 @@ public class BotHandler implements HttpHandler {
                 builder.append("<input type=\"input\" value=\"" + chatId + "\" name=\"id\" hidden>");
             }
             builder.append(line);
+            if (line.equals("<body onLoad=\"javascript:init()\">")) {
+                builder.append("<form method=\"GET\" action=\"" + ConstantManager.serverURI + ":" + ConstantManager.port + "/\" name=\"web-form\">");
+            }
         }
         byte[] page = builder.toString().getBytes();
         httpExchange.sendResponseHeaders(200, page.length);

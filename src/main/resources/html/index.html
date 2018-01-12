@@ -72,11 +72,13 @@
         }
 
         function check() {
+            /*
             if (document.getElementsByName("user-name-value")[0].value == "") {
                 alert("Пожалуста, представьтесь.");
             } else {
                 document.getElementsByName("web-form")[0].submit();
-            }
+            }*/
+            document.getElementsByName("web-form")[0].submit();
         }
 
     </script>
@@ -84,7 +86,7 @@
 </head>
 
 <body onLoad="javascript:init()">
-<form method="GET" action="http://sergey.medvedev.space:10000/" name="web-form">
+<!-- <form method="GET" action="http://sergey.medvedev.space:10000/" name="web-form">
     <div id="user-name">
         <div id="user-name_text">
             Представься
@@ -93,6 +95,7 @@
             <input type="text" name="user-name-value">
         </div>
     </div>
+-->
 
     <div class="week-table_frame">
         <div class="week-table">
