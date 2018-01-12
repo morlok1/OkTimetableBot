@@ -43,10 +43,18 @@ public class BotHandler implements HttpHandler {
     }
 
     private void parseMessageFromWebForm(HttpExchange httpExchange) {
-        log.info(httpExchange.getRequestURI().toString());
+        String uri = httpExchange.getRequestURI().toString();
+        log.info("Parse web-form answer: " + uri);
+
+        //Парсим чиселки
+
     }
 
     private void sendWebForm(HttpExchange httpExchange) throws IOException {
+
+        String chatId = httpExchange.getRequestURI().toString();
+        chatId = chatId.substring(chatId.indexOf("chat"));
+
         ClassLoader cl = this.getClass().getClassLoader();
         InputStream is = cl.getResourceAsStream("html/index.html");
         BufferedReader reader = new BufferedReader(new InputStreamReader(is));
@@ -57,6 +65,9 @@ public class BotHandler implements HttpHandler {
 
         log.info("Sending a web page with form");
         while ((line = reader.readLine()) != null) {
+            if (line.equals("</form>")) {
+                builder.append("<input type=\"input\" value=\"" + chatId + "\" name=\"id\" hidden>");
+            }
             builder.append(line);
         }
         byte[] page = builder.toString().getBytes();
