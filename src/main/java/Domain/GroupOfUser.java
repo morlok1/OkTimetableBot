@@ -6,10 +6,10 @@ public class GroupOfUser {
 
     private ArrayList<UsersTimetable> users;
 
-    private String hashNumber;
+    private String chatID;
 
-    public GroupOfUser(String hashNumber) {
-        this.hashNumber = hashNumber;
+    public GroupOfUser(String chatID) {
+        this.chatID = chatID;
         users = new ArrayList<>();
     }
 

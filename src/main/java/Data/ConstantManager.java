@@ -8,6 +8,19 @@ public interface ConstantManager {
 
     String okHost = "api.ok.ru";
 
-    String endpoint = "\"url\":\"http://sergey.medvedev.space:10000/\""; //"\"url\":\"46.32.85.101:10000\"";
+    String serverURI = "http://sergey.medvedev.space";
 
+    String endpointURI = "/forOkWebhooks";
+
+    String linkRequest = "Расписание";
+
+    String resultRequest = "Результат";
+
+    String[] dayOfWeek = {"Понедельник","Вторник","Среда","Четверг","Пятница","Суббота","Воскресенье"};
+
+    char[] alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".toCharArray();
+
+    int port = 10000;
+
+    int hashLength = 7;
 }
