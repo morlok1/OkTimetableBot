@@ -6,7 +6,7 @@ public class UsersTimetable {
 
     private EmploymentState[] employments;
 
-    UsersTimetable(EmploymentState[] employmentStates) {
+    public UsersTimetable(EmploymentState[] employmentStates) {
         employments = new EmploymentState[7];
         for (int i=0; i<employmentStates.length; i++) {
             employments[i] = employmentStates[i];
@@ -16,4 +16,5 @@ public class UsersTimetable {
     public EmploymentState getStateByDayIndex(int day) {
         return employments[day];
     }
+
 }

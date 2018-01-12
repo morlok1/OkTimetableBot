@@ -38,4 +38,8 @@ public class GroupOfUser {
 
         return generalTimetable;
     }
+
+    public void clear() {
+        users.clear();
+    }
 }

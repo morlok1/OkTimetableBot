@@ -16,11 +16,13 @@ public interface ConstantManager {
 
     String resultRequest = "Результат";
 
+    String clearRequest = "Новое";
+
     String[] dayOfWeek = {"Понедельник","Вторник","Среда","Четверг","Пятница","Суббота","Воскресенье"};
 
     char[] alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".toCharArray();
 
-    int port = 10000;
+    int port = 10001;
 
     int hashLength = 7;
 }

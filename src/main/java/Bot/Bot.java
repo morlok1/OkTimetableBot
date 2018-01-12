@@ -33,39 +33,54 @@ public class Bot {
     }
 
     public String generateNewGroup(String chatId) {
+        String result = "";
+        if (groups.containsKey(chatId)) {
+            log.warn("Attempt to wipe the timetable");
+            result = "Вы уже создали расписание.\\nЧтобы начать заново введите 'Новое'";
+        } else {
+            groups.put(chatId, new GroupOfUser(chatId));
+            result = "Форма ввода расписания доступна по ссылке: \\n" + ConstantManager.serverURI + ":" + ConstantManager.port  + "/?id=" + chatId;
+        }
 
-        groups.put(chatId, new GroupOfUser(chatId));
-
-        return ConstantManager.serverURI + ":" + ConstantManager.port  + "/?id=" + chatId;
+        return result;
     }
 
-    public GroupOfUser getGroupByChatID(String chatID) {
-        return groups.get(chatID);
+    public String clearAndGenerateGroup(String chatId) {
+        groups.remove(chatId);
+
+        return generateNewGroup(chatId);
     }
 
     public String getTimetable(String chatId) {
+        log.info("Start generate timetable");
+        String result = "";
         StringBuilder builder = new StringBuilder();
 
-        UsersTimetable.EmploymentState[] employmentStates = groups.get(chatId).getGeneralTimetable();
+        if (groups.containsKey(chatId)) {
+            UsersTimetable.EmploymentState[] employmentStates = groups.get(chatId).getGeneralTimetable();
 
-        for (int i=0; i<employmentStates.length; i++) {
+            for (int i = 0; i < employmentStates.length; i++) {
+                builder.append(dayOfWeek[i]);
 
-            builder.append(dayOfWeek[i]);
-
-            switch (employmentStates[i]) {
-                case FREE:
-                    builder.append(": Свободно ");
-                    break;
-                case ALMOSTFREE:
-                    builder.append(": Свободно, но с затруднениями ");
-                    break;
-                case BUSY:
-                    builder.append(": Занято ");
-                    break;
+                switch (employmentStates[i]) {
+                    case FREE:
+                        builder.append(": Свободно \\n");
+                        break;
+                    case ALMOSTFREE:
+                        builder.append(": Свободно, но с затруднениями \\n");
+                        break;
+                    case BUSY:
+                        builder.append(": Занято \\n");
+                        break;
+                }
             }
+            log.info(builder.toString());
+            result = builder.toString();
+        } else {
+            log.warn("Access to the schedule that was not created");
+            result = "Вы ещё не создали расписания.\\nЧтобы создать расписание отправьте 'Расписание'";
         }
-
-        return builder.toString();
+        return result;
     }
 
 
@@ -81,4 +96,9 @@ public class Bot {
 
         return builder.toString();
     }
+
+    public GroupOfUser getGroupByChatID(String chatID) {
+        return groups.get(chatID);
+    }
+
 }

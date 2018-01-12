@@ -1,6 +1,7 @@
 package Bot;
 
 import Data.ConstantManager;
+import Domain.UsersTimetable;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import me.xdrop.fuzzywuzzy.FuzzySearch;
@@ -8,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.util.Arrays;
 
 public class BotHandler implements HttpHandler {
 
@@ -43,10 +45,36 @@ public class BotHandler implements HttpHandler {
     }
 
     private void parseMessageFromWebForm(HttpExchange httpExchange) {
+        byte[] page = "Well Done! You can go away!".getBytes();
+        OutputStream os = httpExchange.getResponseBody();
+        try {
+            httpExchange.sendResponseHeaders(200, page.length);
+            os.write(page);
+            os.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
         String uri = httpExchange.getRequestURI().toString();
         log.info("Parse web-form answer: " + uri);
+        ///?user-name-value=Fs&monday=2&tuesday=2&wednesday=2&thursday=2&friday=3&saturday=2&sunday=2&id=chat%3AC3e11972edc00
 
-        //Парсим чиселки
+        UsersTimetable.EmploymentState[] employmentStates = new UsersTimetable.EmploymentState[7];
+
+        employmentStates[0] = getEmploementStateByIndex(Integer.parseInt(uri.substring(uri.indexOf("monday") + 7,uri.indexOf("monday") + 8)));
+        employmentStates[1] = getEmploementStateByIndex(Integer.parseInt(uri.substring(uri.indexOf("tuesday") + 8,uri.indexOf("tuesday") + 9)));
+        employmentStates[2] = getEmploementStateByIndex(Integer.parseInt(uri.substring(uri.indexOf("wednesday") + 10,uri.indexOf("wednesday") + 11)));
+        employmentStates[3] = getEmploementStateByIndex(Integer.parseInt(uri.substring(uri.indexOf("thursday") + 9,uri.indexOf("thursday") + 10)));
+        employmentStates[4] = getEmploementStateByIndex(Integer.parseInt(uri.substring(uri.indexOf("friday") + 7,uri.indexOf("friday") + 8)));
+        employmentStates[5] = getEmploementStateByIndex(Integer.parseInt(uri.substring(uri.indexOf("saturday") + 9,uri.indexOf("saturday") + 10)));
+        employmentStates[6] = getEmploementStateByIndex(Integer.parseInt(uri.substring(uri.indexOf("sunday") + 7,uri.indexOf("sunday") + 8)));
+
+        String chatID = uri.substring(uri.indexOf("&id=") + 4, uri.length()).replace("%",":");
+
+        log.info("Parse web-form answer complete. Result: chatID:" + chatID + " timetable: " + Arrays.toString(employmentStates));
+
+        bot.getGroupByChatID(chatID).addUser(employmentStates);
+        //UsersTimetable user = new UsersTimetable();
 
     }
 
@@ -113,20 +141,34 @@ public class BotHandler implements HttpHandler {
         os.close();
 
         if (FuzzySearch.ratio(message, ConstantManager.linkRequest) > 80) {
-            //Пришел запрос на создание нового расписания
-            log.info("New group for " + chatId + " created.");
+            //Пришел запрос на создание первого расписания
+            log.info("First group for " + chatId + " created.");
             server.sendMessage(bot.generateNewGroup(chatId), chatId);
 
         } else if (FuzzySearch.ratio(message, ConstantManager.resultRequest) > 80) {
             //Пришел запрос на выдачу результирующего расписания
             log.info("Result timetable for " + chatId + " generated.");
             server.sendMessage(bot.getTimetable(chatId), chatId);
+        } else if (FuzzySearch.ratio(message, ConstantManager.clearRequest) > 90) {
+            //Пришел запрос на создание нового расписания
+            log.info("New group for " + chatId + "created");
+            server.sendMessage(bot.clearAndGenerateGroup(chatId), chatId);
         } else {
-            //Отправляем информационное сообщение
-            log.info("Information message to " + chatId + " sended.");
-            server.sendMessage("Отправьте 'Расписание', чтобы начать составлять новое расписание, или 'Результаты' чтобы получить результаты.", chatId);
+                //Отправляем информационное сообщение
+                log.info("Information message to " + chatId + " sended.");
+                server.sendMessage("Отправьте 'Расписание', чтобы начать составлять новое расписание.\\n Отправьте 'Результаты' чтобы получить результаты.", chatId);
         }
     }
 
-
+    private UsersTimetable.EmploymentState getEmploementStateByIndex(int index) {
+        switch (index) {
+            case 1:
+                return UsersTimetable.EmploymentState.FREE;
+            case 2:
+                return UsersTimetable.EmploymentState.ALMOSTFREE;
+            case 3:
+                return UsersTimetable.EmploymentState.BUSY;
+        }
+        return UsersTimetable.EmploymentState.FREE;
+    }
 }
