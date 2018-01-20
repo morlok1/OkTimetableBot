@@ -23,7 +23,7 @@ public interface ConstantManager {
 
     String resultRequest = "Результат";
 
-    String clearRequest = "Новое";
+    String personalTimetableRequest = "Моё расписание";
 
     String[] dayOfWeek = {"Понедельник","Вторник","Среда","Четверг","Пятница","Суббота","Воскресенье"};
 

@@ -4,6 +4,8 @@ import Bot.BotHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static Data.ConstantManager.dayOfWeek;
+
 /**
  * Реализует расписание одного человека - 7 дней с 3 возможными состояниями:
  * -Свободен
@@ -49,5 +51,27 @@ public class UsersTimetable {
         }
 
         return EmploymentState.FREE;
+    }
+
+    public String getTimetableString() {
+        StringBuilder builder = new StringBuilder();
+
+        for (int i = 0; i < employments.length; i++) {
+            builder.append(dayOfWeek[i]);
+
+            switch (employments[i]) {
+                case FREE:
+                    builder.append(": Свободно \\n");
+                    break;
+                case ALMOSTFREE:
+                    builder.append(": Свободно, но с затруднениями \\n");
+                    break;
+                case BUSY:
+                    builder.append(": Занято \\n");
+                    break;
+            }
+        }
+
+        return builder.toString();
     }
 }
