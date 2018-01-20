@@ -1,6 +1,8 @@
 package Domain;
 
-import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Set;
 
 /**
  * Реализует сущность расписания группы
@@ -8,21 +10,30 @@ import java.util.ArrayList;
  */
 public class GroupOfUser {
 
-    private ArrayList<UsersTimetable> users;
+    //private ArrayList<UsersTimetable> users;
+    private HashMap<String, UsersTimetable> users;
 
-    private String chatID;
+    private String adminID;
 
     public GroupOfUser(String chatID) {
-        this.chatID = chatID;
-        users = new ArrayList<>();
+        this.adminID = chatID;
+        users = new HashMap<>();
     }
 
     /**
      * Осуществляет добавление нового расписание в группу
      * @param employmentStates - расписание
      */
-    public void addUser(UsersTimetable.EmploymentState[] employmentStates) {
-        users.add(new UsersTimetable(employmentStates));
+    public void addUser(UsersTimetable.EmploymentState[] employmentStates, String userID) {
+        users.put(userID ,new UsersTimetable(employmentStates));
+    }
+
+    public UsersTimetable getUserById(String chatID) {
+        if (users.containsKey(chatID)) {
+            return users.get(chatID);
+        }
+
+        return null;
     }
 
     /**
@@ -36,8 +47,13 @@ public class GroupOfUser {
             generalTimetable[i] = UsersTimetable.EmploymentState.FREE;
         }
 
-        for (int i=0; i<generalTimetable.length; i++) {
-            for (UsersTimetable user : users) {
+        Set<String> keys = users.keySet();
+        Iterator<String> iterator;
+        UsersTimetable user;
+        for (int i=0; i<7; i++) {
+            iterator = keys.iterator();
+            while (iterator.hasNext()) {
+                user = users.get(iterator.next());
                 if (user.getStateByDayIndex(i) == UsersTimetable.EmploymentState.ALMOSTFREE) {
                     //Индексируем только ухудшения
                     generalTimetable[i] = UsersTimetable.EmploymentState.ALMOSTFREE;
@@ -51,6 +67,33 @@ public class GroupOfUser {
             }
         }
 
+        /*for (int i=0; i<generalTimetable.length; i++) {
+            for (UsersTimetable user : users) {
+                if (user.getStateByDayIndex(i) == UsersTimetable.EmploymentState.ALMOSTFREE) {
+                    //Индексируем только ухудшения
+                    generalTimetable[i] = UsersTimetable.EmploymentState.ALMOSTFREE;
+                }
+                if (user.getStateByDayIndex(i) == UsersTimetable.EmploymentState.BUSY) {
+                    //После этого продолжать нет смысла, не даем возможности
+                    //поднять степень доступности дня до среднего - выходим из цикла
+                    generalTimetable[i] = UsersTimetable.EmploymentState.BUSY;
+                    break;
+                }
+            }
+        }*/
+
         return generalTimetable;
+    }
+
+    public String getAdminID() {
+        return adminID;
+    }
+
+    public boolean contain(String chatId) {
+        if (users.containsKey(chatId)) {
+            return true;
+        }
+
+        return false;
     }
 }

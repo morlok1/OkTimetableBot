@@ -9,7 +9,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
-import java.util.Arrays;
+
+import static Data.ConstantManager.hashLength;
+import static Data.ConstantManager.shortDayOfWeek;
+
 
 /**
  * Класс, осуществляющий обработку входящих на сервер запросов:
@@ -58,7 +61,7 @@ public class BotHandler implements HttpHandler {
 
         } else if (httpExchange.getRequestURI().toString().contains("monday")) {
             //Записываем результаты для заданной группы
-            parseMessageFromWebForm(httpExchange);
+            parseTimetableFromWebForm(httpExchange);
         } else {
             //Это какой-то странный запрос - пока просто игнорим и светим в лог
             log.warn("Unexpected request (probably, the Chinese)");
@@ -124,8 +127,8 @@ public class BotHandler implements HttpHandler {
      */
     private void sendWebForm(HttpExchange httpExchange) throws IOException {
 
-        String chatId = httpExchange.getRequestURI().toString();
-        chatId = chatId.substring(chatId.indexOf("chat"));
+        String hash = httpExchange.getRequestURI().toString();
+        hash = hash.substring(hash.indexOf("?id=") + 4);
 
         ClassLoader cl = this.getClass().getClassLoader();
         InputStream is = cl.getResourceAsStream(ConstantManager.formUri);
@@ -138,7 +141,7 @@ public class BotHandler implements HttpHandler {
         log.info("Sending a web page with form");
         while ((line = reader.readLine()) != null) {
             if (line.equals("</form>")) {
-                builder.append("<input type=\"input\" value=\"" + chatId + "\" name=\"id\" hidden>");
+                builder.append("<input type=\"input\" value=\"" + hash + "\" name=\"hash\" hidden>");
             }
             builder.append(line);
             if (line.equals("<body onLoad=\"javascript:init()\">")) {
@@ -196,6 +199,8 @@ public class BotHandler implements HttpHandler {
         os.write(bytes);
         os.close();
 
+        String hash;
+
         if (FuzzySearch.ratio(message, ConstantManager.linkRequest) > 80) {
             //Пришел запрос на создание первого расписания
             log.info("First group for " + chatId + " created.");
@@ -203,12 +208,38 @@ public class BotHandler implements HttpHandler {
 
         } else if (FuzzySearch.ratio(message, ConstantManager.resultRequest) > 80) {
             //Пришел запрос на выдачу результирующего расписания
+
             log.info("Result timetable for " + chatId + " generated.");
             server.sendMessage(bot.getTimetable(chatId), chatId);
         } else if (FuzzySearch.ratio(message, ConstantManager.clearRequest) > 90) {
             //Пришел запрос на создание нового расписания
             log.info("New group for " + chatId + "created");
             server.sendMessage(bot.clearAndGenerateGroup(chatId), chatId);
+        } else if (message.length() == hashLength && bot.findHash(message)) {
+            //Если пользователя в этом чате ещё нет - добавляем его туда
+            if (bot.getGroupByHash(message).getUserById(chatId) == null) {
+                UsersTimetable.EmploymentState[] employmentStates = new UsersTimetable.EmploymentState[7];
+                for (int i = 0; i < 7; i++) {
+                    employmentStates[i] = UsersTimetable.EmploymentState.FREE;
+                }
+                bot.getGroupByHash(message).addUser(employmentStates, chatId);
+                log.info("Added user " + chatId + " for group " + message);
+            }
+            //Обновляем активное расписание для пользователя
+            bot.getActiveUsersGroup().put(chatId, message);
+            server.sendMessage("Авторизованы, введите ваше расписание!",chatId);
+        } else if (findTimetable(message)) {
+            if (bot.getActiveUsersGroup().containsKey(chatId)) {
+                if (parseTimetableFromOk(message, chatId, bot.getActiveUsersGroup().get(chatId))) {
+                    server.sendMessage("Расписание обновлено!", chatId);
+                } else {
+                    server.sendMessage("Ошибка в синтаксисе! Расписание не обновлено!", chatId);
+                }
+
+            } else {
+                server.sendMessage("Вы не авторизованы!", chatId);
+            }
+
         } else {
                 //Отправляем информационное сообщение
                 log.info("Information message to " + chatId + " sended.");
@@ -216,13 +247,46 @@ public class BotHandler implements HttpHandler {
         }
     }
 
+    private boolean parseTimetableFromOk(String message, String chatID, String hash) {
+        String state;
+
+        for (int i=0; i<7; i++) {
+            if (message.contains(shortDayOfWeek[i])) {
+                try {
+                    state = message.substring(message.indexOf(shortDayOfWeek[i]) + 2, message.indexOf(shortDayOfWeek[i]) + 3);
+                    bot.getGroupByHash(hash).getUserById(chatID).setStateByDayIndex(i, Integer.parseInt(state));
+                } catch (Exception E) {
+                    log.error("Cannot parse timetable message: " + message);
+                    return false;
+                }
+            }
+
+        }
+
+        return true;
+    }
+
+    private boolean findTimetable(String message) {
+        if (message.contains("пн") ||
+                message.contains("вт") ||
+                message.contains("ср") ||
+                message.contains("чт") ||
+                message.contains("пн") ||
+                message.contains("сб") ||
+                message.contains("вс")) {
+            return true;
+        }
+
+        return false;
+    }
+
     /**
      * Производит разбор GET-запроса от формы с заполненным расписанием на неделю и его добавление
      * @param httpExchange
      * @throws IOException
      */
-    private void parseMessageFromWebForm(HttpExchange httpExchange) throws IOException {
-        sendThanksPage(httpExchange);
+    private void parseTimetableFromWebForm(HttpExchange httpExchange) throws IOException {
+        /*sendThanksPage(httpExchange);
 
         String uri = httpExchange.getRequestURI().toString();
         log.info("Parse web-form answer: " + uri);
@@ -238,12 +302,12 @@ public class BotHandler implements HttpHandler {
         employmentStates[5] = getEmploymentStateByIndex(Integer.parseInt(uri.substring(uri.indexOf("saturday") + 9,uri.indexOf("saturday") + 10)));
         employmentStates[6] = getEmploymentStateByIndex(Integer.parseInt(uri.substring(uri.indexOf("sunday") + 7,uri.indexOf("sunday") + 8)));
 
-        String chatID = uri.substring(uri.indexOf("&id=") + 4, uri.length()).replace("%3A",":");
+        String hash = uri.substring(uri.indexOf("&hash=") + 6, uri.indexOf("&hash=") + 6 + hashLength).replace("%3A",":");
 
-        log.info("Parse web-form answer complete. Result: chatID:" + chatID + " timetable: " + Arrays.toString(employmentStates));
+        log.info("Parse web-form answer complete. Result: hash:" + hash + " timetable: " + Arrays.toString(employmentStates));
 
-        bot.getGroupByChatID(chatID).addUser(employmentStates);
-        //UsersTimetable user = new UsersTimetable();
+        bot.getGroupByHash(hash).addUser(employmentStates, ); //TODO: Добавить какой-то идентификатор в форме
+        */
 
     }
 
@@ -263,4 +327,5 @@ public class BotHandler implements HttpHandler {
         }
         return UsersTimetable.EmploymentState.FREE;
     }
+
 }

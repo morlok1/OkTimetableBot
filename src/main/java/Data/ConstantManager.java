@@ -27,6 +27,11 @@ public interface ConstantManager {
 
     String[] dayOfWeek = {"Понедельник","Вторник","Среда","Четверг","Пятница","Суббота","Воскресенье"};
 
-    int port = 10001;
+    String[] shortDayOfWeek = {"пн", "вт", "ср", "чт", "пт", "сб", "вс"};
+
+    int port = 10002;
+
+    String alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabvdefghijklmnopqrstuvwxyz0123456789";
+    int hashLength = 10;
 
 }
