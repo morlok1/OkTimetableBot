@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.*;
 
+import static Data.ChatMessageManager.*;
 import static Data.ConstantManager.hashLength;
 import static Data.ConstantManager.shortDayOfWeek;
 
@@ -203,18 +204,17 @@ public class BotHandler implements HttpHandler {
 
         if (FuzzySearch.ratio(message, ConstantManager.linkRequest) > 80) {
             //Пришел запрос на создание первого расписания
-            log.info("First group for " + chatId + " created.");
-            server.sendMessage(bot.generateNewGroup(chatId), chatId);
+            log.info("New group for " + chatId + " created.");
+
+            server.sendMessage(newTimetableCreated + bot.generateNewGroup(chatId), chatId);
 
         } else if (FuzzySearch.ratio(message, ConstantManager.resultRequest) > 80) {
             //Пришел запрос на выдачу результирующего расписания
 
             log.info("Result timetable for " + chatId + " generated.");
+
             server.sendMessage(bot.getTimetable(chatId), chatId);
-        } else if (FuzzySearch.ratio(message, ConstantManager.clearRequest) > 90) {
-            //Пришел запрос на создание нового расписания
-            log.info("New group for " + chatId + "created");
-            server.sendMessage(bot.clearAndGenerateGroup(chatId), chatId);
+
         } else if (message.length() == hashLength && bot.findHash(message)) {
             //Если пользователя в этом чате ещё нет - добавляем его туда
             if (bot.getGroupByHash(message).getUserById(chatId) == null) {
@@ -227,23 +227,32 @@ public class BotHandler implements HttpHandler {
             }
             //Обновляем активное расписание для пользователя
             bot.getActiveUsersGroup().put(chatId, message);
-            server.sendMessage("Авторизованы, введите ваше расписание!",chatId);
+
+            server.sendMessage(authorizationComplete ,chatId);
+
         } else if (findTimetable(message)) {
             if (bot.getActiveUsersGroup().containsKey(chatId)) {
                 if (parseTimetableFromOk(message, chatId, bot.getActiveUsersGroup().get(chatId))) {
-                    server.sendMessage("Расписание обновлено!", chatId);
+
+                    server.sendMessage(timetableEditCompleted, chatId);
+
                 } else {
-                    server.sendMessage("Ошибка в синтаксисе! Расписание не обновлено!", chatId);
+
+                    server.sendMessage(syntaxError, chatId);
+
                 }
 
             } else {
-                server.sendMessage("Вы не авторизованы!", chatId);
+
+                server.sendMessage(authorizationError, chatId);
+
             }
 
         } else {
                 //Отправляем информационное сообщение
                 log.info("Information message to " + chatId + " sended.");
-                server.sendMessage("Отправьте 'Расписание', чтобы начать составлять новое расписание.\\n Отправьте 'Результаты' чтобы получить результаты.", chatId);
+
+                server.sendMessage(mainInfo, chatId);
         }
     }
 

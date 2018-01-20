@@ -11,6 +11,7 @@ import java.util.Iterator;
 import java.util.Random;
 import java.util.Set;
 
+import static Data.ChatMessageManager.timetableIsNotExist;
 import static Data.ConstantManager.*;
 
 /**
@@ -45,37 +46,12 @@ public class Bot {
      * @return
      */
     public String generateNewGroup(String chatId) {
-        String result = "";
         String hash = generateHash();
         log.info("New timetable for chat: " + chatId + " generated with hash: " + hash);
-//        if (findAdmin(chatId) != null) {
-//            log.warn("Attempt to wipe the timetable");
-//            result = "Вы уже создали расписание.\\nЧтобы начать заново введите 'Новое'";
-//        } else {
-            groups.put(hash, new GroupOfUser(chatId));
-            result = "Форма ввода расписания доступна по ссылке: \\n" + ConstantManager.serverURI + ":" + ConstantManager.port  + "/?id=" + hash;
-//        }
 
-        return result;
-    }
+        groups.put(hash, new GroupOfUser(chatId));
 
-    /**
-     * Удаляет расписание по переданному идентификатору и создает новое
-     * В случае, если расписания не существует - передаёт оповещение
-     * @param chatId - идентификатор
-     * @return
-     */
-    public String clearAndGenerateGroup(String chatId) {
-        String result;
-        if (findAdmin(chatId) == null) {
-            log.warn("Attempt to wipe the timetable");
-            result = "Вы ещё не создали расписания.\\\\nЧтобы создать расписание отправьте 'Расписание'\"";
-        } else {
-            groups.remove(chatId);
-            result = generateNewGroup(chatId);
-        }
-
-        return result;
+        return hash;
     }
 
     /**
@@ -111,7 +87,7 @@ public class Bot {
             result = builder.toString();
         } else {
             log.warn("Access to the schedule that was not created");
-            result = "Вы ещё не создали расписания.\\nЧтобы создать расписание отправьте 'Расписание'";
+            result = timetableIsNotExist;
         }
         return result;
     }
