@@ -8,8 +8,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.util.Properties;
 
-import static Data.ChatMessageManager.*;
 import static Data.ConstantManager.*;
 
 
@@ -26,11 +26,20 @@ public class BotHandler implements HttpHandler {
     private static final Logger log = LoggerFactory.getLogger(BotHandler.class);
     private BotServer server;
     private Bot bot;
+    private Properties properties;
 
 
     public BotHandler(BotServer server) {
         this.server = server;
         bot = Bot.getInstance();
+        properties = new Properties();
+        try {
+            properties.load(BotHandler.class.getResourceAsStream("/application.properties"));
+        } catch (IOException e) {
+            log.error("Failed to read application properties. Terminating application...");
+            System.exit(1);
+        }
+
     }
 
     /**
@@ -107,7 +116,7 @@ public class BotHandler implements HttpHandler {
 
             //Пришел запрос на создание первого расписания
             log.info("New group for " + chatId + " created.");
-            server.sendMessage(newTimetableCreated + bot.generateNewGroup(chatId), chatId);
+            server.sendMessage(properties.getProperty("newTimetableCreated") + bot.generateNewGroup(chatId), chatId);
 
         } else if (FuzzySearch.ratio(message, resultRequest) > 80) {
 
@@ -123,7 +132,7 @@ public class BotHandler implements HttpHandler {
                         .getTimetableString(), chatId);
 
             } else {
-                server.sendMessage(timetableGetAuthorizationError, chatId);
+                server.sendMessage(properties.getProperty("timetableGetAuthorizationError"), chatId);
             }
 
         } else if (message.length() == hashLength && bot.findHash(message)) {
@@ -139,25 +148,25 @@ public class BotHandler implements HttpHandler {
             }
             //Обновляем активное расписание для пользователя
             bot.getActiveUsersGroup().put(chatId, message);
-            server.sendMessage(authorizationComplete ,chatId);
+            server.sendMessage(properties.getProperty("authorizationComplete") ,chatId);
 
         } else if (findTimetableInMessage(message)) {
 
             if (bot.getActiveUsersGroup().containsKey(chatId)) {
                 if (parseTimetableFromOk(message, chatId, bot.getActiveUsersGroup().get(chatId))) {
-                    server.sendMessage(timetableEditCompleted, chatId);
+                    server.sendMessage(properties.getProperty("timetableEditCompleted"), chatId);
                 } else {
-                    server.sendMessage(syntaxError, chatId);
+                    server.sendMessage(properties.getProperty("syntaxError"), chatId);
                 }
 
             } else {
-                server.sendMessage(authorizationError, chatId);
+                server.sendMessage(properties.getProperty("authorizationError"), chatId);
             }
 
         } else {
             //Отправляем информационное сообщение
             log.info("Information message to " + chatId + " sended.");
-            server.sendMessage(mainInfo, chatId);
+            server.sendMessage(properties.getProperty("mainInfo"), chatId);
         }
     }
 
