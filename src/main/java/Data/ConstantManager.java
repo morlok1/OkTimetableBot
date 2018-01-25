@@ -25,13 +25,16 @@ public interface ConstantManager {
 
     String personalTimetableRequest = "Моё расписание";
 
-    String[] dayOfWeek = {"Понедельник","Вторник","Среда","Четверг","Пятница","Суббота","Воскресенье"};
-
     String[] shortDayOfWeek = {"пн", "вт", "ср", "чт", "пт", "сб", "вс"};
 
     int port = 10002;
 
     String alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabvdefghijklmnopqrstuvwxyz0123456789";
     int hashLength = 10;
+
+    static String getDayOfWeekByIndex(int index) {
+        String[] dayOfWeek = {"Понедельник","Вторник","Среда","Четверг","Пятница","Суббота","Воскресенье"};
+        return dayOfWeek[index];
+    }
 
 }

@@ -1,5 +1,6 @@
 package Bot;
 
+import Data.ConstantManager;
 import Domain.GroupOfUser;
 import Domain.UsersTimetable;
 import org.slf4j.Logger;
@@ -75,7 +76,7 @@ public class Bot {
             UsersTimetable.EmploymentState[] employmentStates = groups.get(activeUsersGroup.get(chatId)).getGeneralTimetable();
 
             for (int i = 0; i < employmentStates.length; i++) {
-                builder.append(dayOfWeek[i]);
+                builder.append(ConstantManager.getDayOfWeekByIndex(i));
 
                 switch (employmentStates[i]) {
                     case FREE:

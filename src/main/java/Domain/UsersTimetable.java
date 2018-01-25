@@ -1,10 +1,9 @@
 package Domain;
 
-import Bot.BotHandler;
+import Data.ConstantManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static Data.ConstantManager.dayOfWeek;
 
 /**
  * Реализует расписание одного человека - 7 дней с 3 возможными состояниями:
@@ -57,7 +56,7 @@ public class UsersTimetable {
         StringBuilder builder = new StringBuilder();
 
         for (int i = 0; i < employments.length; i++) {
-            builder.append(dayOfWeek[i]);
+            builder.append(ConstantManager.getDayOfWeekByIndex(i));
 
             switch (employments[i]) {
                 case FREE:
