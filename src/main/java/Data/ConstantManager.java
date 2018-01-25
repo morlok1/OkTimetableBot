@@ -13,12 +13,6 @@ public interface ConstantManager {
 
     String endpointURI = "/forOkWebhooks";
 
-    String favikonUri = "images/favicon.ico";
-
-    String thanksUri = "html/thanks.html";
-
-    String formUri = "html/timetableForm.html";
-
     String linkRequest = "Расписание";
 
     String resultRequest = "Результат";

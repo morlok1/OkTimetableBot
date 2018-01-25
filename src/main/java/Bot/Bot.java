@@ -122,12 +122,8 @@ public class Bot {
 
     private String findAdmin(String adminID) {
 
-        Set<String> keys = groups.keySet();
-        Iterator<String> iterator = keys.iterator();
-        String hash;
-        while (iterator.hasNext()) {
-            hash = iterator.next();
-            System.out.println("HASH: " + hash);
+        for (Map.Entry<String, GroupOfUser> entry : groups.entrySet()) {
+            String hash = entry.getKey();
             if (groups.get(hash).getAdminID().equals(adminID)) {
                 return hash;
             }
@@ -145,12 +141,9 @@ public class Bot {
     }
 
     public String findUser(String chatId) {
-        Set<String> keys = groups.keySet();
-        Iterator<String> iterator = keys.iterator();
-        String hash;
-        while (iterator.hasNext()) {
-            hash = iterator.next();
-            if (groups.get(hash).contain(chatId)) {
+        for (Map.Entry<String, GroupOfUser> entry : groups.entrySet()) {
+            String hash = entry.getKey();
+            if (groups.get(hash).contains(chatId)) {
                 return hash;
             }
         }

@@ -6,9 +6,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 
-import static Data.ConstantManager.DAYS_IN_WEEK;
-
-
 /**
  * Реализует расписание одного человека - 7 дней с 3 возможными состояниями:
  * -Свободен
@@ -24,7 +21,7 @@ public class UsersTimetable {
     private EmploymentState[] employments;
 
     public UsersTimetable(EmploymentState[] employmentStates) {
-        employments = Arrays.copyOf(employmentStates, employmentStates.length);//new EmploymentState[DAYS_IN_WEEK];
+        employments = Arrays.copyOf(employmentStates, employmentStates.length);
     }
 
     /**

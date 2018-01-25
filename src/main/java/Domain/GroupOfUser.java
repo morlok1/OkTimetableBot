@@ -1,9 +1,6 @@
 package Domain;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Set;
+import java.util.*;
 
 import static Data.ConstantManager.DAYS_IN_WEEK;
 import static Domain.UsersTimetable.EmploymentState.FREE;
@@ -14,7 +11,6 @@ import static Domain.UsersTimetable.EmploymentState.FREE;
  */
 public class GroupOfUser {
 
-    //private ArrayList<UsersTimetable> users;
     private HashMap<String, UsersTimetable> users;
 
     private String adminID;
@@ -33,11 +29,7 @@ public class GroupOfUser {
     }
 
     public UsersTimetable getUserById(String chatID) {
-        if (users.containsKey(chatID)) {
-            return users.get(chatID);
-        }
-
-        return null;
+        return users.get(chatID);
     }
 
     /**
@@ -48,22 +40,19 @@ public class GroupOfUser {
         UsersTimetable.EmploymentState[] generalTimetable = new UsersTimetable.EmploymentState[DAYS_IN_WEEK];
         Arrays.fill(generalTimetable, FREE);
 
-        Set<String> keys = users.keySet();
-        Iterator<String> iterator;
-        UsersTimetable user;
         for (int i=0; i<DAYS_IN_WEEK; i++) {
-            iterator = keys.iterator();
-            while (iterator.hasNext()) {
-                user = users.get(iterator.next());
-                if (user.getStateByDayIndex(i) == UsersTimetable.EmploymentState.ALMOSTFREE) {
-                    //Индексируем только ухудшения
-                    generalTimetable[i] = UsersTimetable.EmploymentState.ALMOSTFREE;
-                }
-                if (user.getStateByDayIndex(i) == UsersTimetable.EmploymentState.BUSY) {
-                    //После этого продолжать нет смысла, не даем возможности
-                    //поднять степень доступности дня до среднего - выходим из цикла
-                    generalTimetable[i] = UsersTimetable.EmploymentState.BUSY;
-                    break;
+
+            for (Map.Entry<String, UsersTimetable> entry : users.entrySet()) {
+                switch (users.get(entry.getKey()).getStateByDayIndex(i)) {
+                    case ALMOSTFREE:
+                        //Индексируем только ухудшения
+                        generalTimetable[i] = UsersTimetable.EmploymentState.ALMOSTFREE;
+                        break;
+                    case BUSY:
+                        //После этого продолжать нет смысла, не даем возможности
+                        //поднять степень доступности дня до среднего - выходим из цикла
+                        generalTimetable[i] = UsersTimetable.EmploymentState.BUSY;
+                        break;
                 }
             }
         }
@@ -75,11 +64,7 @@ public class GroupOfUser {
         return adminID;
     }
 
-    public boolean contain(String chatId) {
-        if (users.containsKey(chatId)) {
-            return true;
-        }
-
-        return false;
+    public boolean contains(String chatId) {
+        return users.containsKey(chatId);
     }
 }
