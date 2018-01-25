@@ -1,8 +1,12 @@
 package Domain;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Set;
+
+import static Data.ConstantManager.DAYS_IN_WEEK;
+import static Domain.UsersTimetable.EmploymentState.FREE;
 
 /**
  * Реализует сущность расписания группы
@@ -41,16 +45,13 @@ public class GroupOfUser {
      * @return
      */
     public UsersTimetable.EmploymentState[] getGeneralTimetable() {
-        UsersTimetable.EmploymentState[] generalTimetable = new UsersTimetable.EmploymentState[7];
-        for (int i=0; i<generalTimetable.length; i++) {
-            //Изначально все дни свободны
-            generalTimetable[i] = UsersTimetable.EmploymentState.FREE;
-        }
+        UsersTimetable.EmploymentState[] generalTimetable = new UsersTimetable.EmploymentState[DAYS_IN_WEEK];
+        Arrays.fill(generalTimetable, FREE);
 
         Set<String> keys = users.keySet();
         Iterator<String> iterator;
         UsersTimetable user;
-        for (int i=0; i<7; i++) {
+        for (int i=0; i<DAYS_IN_WEEK; i++) {
             iterator = keys.iterator();
             while (iterator.hasNext()) {
                 user = users.get(iterator.next());
@@ -66,21 +67,6 @@ public class GroupOfUser {
                 }
             }
         }
-
-        /*for (int i=0; i<generalTimetable.length; i++) {
-            for (UsersTimetable user : users) {
-                if (user.getStateByDayIndex(i) == UsersTimetable.EmploymentState.ALMOSTFREE) {
-                    //Индексируем только ухудшения
-                    generalTimetable[i] = UsersTimetable.EmploymentState.ALMOSTFREE;
-                }
-                if (user.getStateByDayIndex(i) == UsersTimetable.EmploymentState.BUSY) {
-                    //После этого продолжать нет смысла, не даем возможности
-                    //поднять степень доступности дня до среднего - выходим из цикла
-                    generalTimetable[i] = UsersTimetable.EmploymentState.BUSY;
-                    break;
-                }
-            }
-        }*/
 
         return generalTimetable;
     }

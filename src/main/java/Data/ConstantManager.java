@@ -27,6 +27,8 @@ public interface ConstantManager {
 
     String[] shortDayOfWeek = {"пн", "вт", "ср", "чт", "пт", "сб", "вс"};
 
+    int DAYS_IN_WEEK = 7;
+
     int port = 10002;
 
     String alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabvdefghijklmnopqrstuvwxyz0123456789";

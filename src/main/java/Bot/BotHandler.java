@@ -140,7 +140,7 @@ public class BotHandler implements HttpHandler {
             //Если пользователя в этом чате ещё нет - добавляем его туда
             if (bot.getGroupByHash(message).getUserById(chatId) == null) {
                 UsersTimetable.EmploymentState[] employmentStates = new UsersTimetable.EmploymentState[7];
-                for (int i = 0; i < 7; i++) {
+                for (int i = 0; i < DAYS_IN_WEEK; i++) {
                     employmentStates[i] = UsersTimetable.EmploymentState.FREE;
                 }
                 bot.getGroupByHash(message).addUser(employmentStates, chatId);
@@ -173,7 +173,7 @@ public class BotHandler implements HttpHandler {
     private boolean parseTimetableFromOk(String message, String chatID, String hash) {
         String state;
 
-        for (int i=0; i<7; i++) {
+        for (int i=0; i<DAYS_IN_WEEK; i++) {
             if (message.contains(shortDayOfWeek[i])) {
                 try {
                     state = message.substring(message.indexOf(shortDayOfWeek[i]) + 2, message.indexOf(shortDayOfWeek[i]) + 3);
