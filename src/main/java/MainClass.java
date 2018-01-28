@@ -1,5 +1,4 @@
 import Bot.BotServer;
-import VK.VKMain;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,11 +12,6 @@ public class MainClass {
 
         log.info("Starting...");
         BotServer server = BotServer.getInstance();
-//        try {
-//            VKMain.startVK();
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
 
     }
 

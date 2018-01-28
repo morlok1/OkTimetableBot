@@ -3,6 +3,11 @@ package Bot;
 import Data.ConstantManager;
 import api.OkApi;
 import com.sun.net.httpserver.HttpServer;
+import com.vk.api.sdk.client.VkApiClient;
+import com.vk.api.sdk.client.actors.GroupActor;
+import com.vk.api.sdk.exceptions.ApiException;
+import com.vk.api.sdk.exceptions.ClientException;
+import com.vk.api.sdk.httpclient.HttpTransportClient;
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
@@ -11,9 +16,14 @@ import org.slf4j.LoggerFactory;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetSocketAddress;
+import java.util.Properties;
+import java.util.Random;
 
+import static Data.ConstantManager.PROPERTIES_FILE;
 import static java.lang.System.exit;
 
 
@@ -28,6 +38,10 @@ public class BotServer {
     private static BotServer theInstance;
     private final HttpServer server;
     private OkApi okApi;
+
+    private GroupActor actorVk;
+    private VkApiClient apiClient;
+    private final Random random = new Random();
 
 
     public static BotServer getInstance() throws IOException {
@@ -50,15 +64,9 @@ public class BotServer {
             server.stop(0);
         }));
 
-        try {
-            Retrofit retrofit = new Retrofit.Builder().baseUrl(ConstantManager.baseUrl).build();
-            okApi = retrofit.create(OkApi.class);
 
-            log.info("OK worker started.");
-
-        } catch (Exception e) {
-            log.error("OK worker is not started.");
-        }
+        initOk();
+        initVk();
 
 
         log.info("Server started. Listen " + ConstantManager.port + " port.");
@@ -73,15 +81,33 @@ public class BotServer {
      * @param message - сообщение
      * @param chatId - идентификатор чата ОК
      */
-    public void sendMessage(String message, String chatId) {
+    public void sendOkMessage(String message, String chatId) {
 
         RequestBody body = RequestBody.create(MediaType.parse("application/json;charset=utf-8"),
-                "{\"recipient\":{\"chat_id\":\"" + chatId + "\"}, \"message\":{\"text\":\"" + message + "\" } }");
+                "{\"recipient\":{\"chat_id\":\"" + chatId + "\"}, \"message\":{\"text\":\"" + message.replaceAll("\n","\\\\n") + "\" } }");
         try {
             Response<ResponseBody> response = okApi.sendMessage(body, ConstantManager.token).execute();
 
         } catch (IOException e) {
             log.error("Error sending message.");
+        }
+    }
+
+    /**
+     * Отправляет заданное текстовое сообщение в заданный чат в ВК
+     * @param message - сообщение
+     * @param chatId - идентификатор чата ВК
+     */
+    public void sendVkMessage(String message, String chatId) {
+        try {
+            apiClient.messages().send(actorVk).message(message).userId(Integer.valueOf(chatId)).randomId(random.nextInt()).execute();
+            log.error("VK worker was started.");
+        } catch (ApiException e) {
+            log.error("INVALID REQUEST", e);
+            log.error("VK worker was not started.");
+        } catch (ClientException e) {
+            log.error("NETWORK ERROR", e);
+            log.error("VK worker was not started.");
         }
     }
 
@@ -142,4 +168,58 @@ public class BotServer {
         return false;
     }
 
+
+    private void initOk() {
+        try {
+            Retrofit retrofit = new Retrofit.Builder().baseUrl(ConstantManager.baseUrl).build();
+            okApi = retrofit.create(OkApi.class);
+            log.error("OK worker was started.");
+        } catch (Exception e) {
+            log.error("OK worker was not started.");
+        }
+    }
+
+    private void initVk() {
+
+        HttpTransportClient client = new HttpTransportClient();
+        apiClient = new VkApiClient(client);
+
+        try {
+            actorVk = initVkApi(apiClient, readProperties());
+        } catch (FileNotFoundException e) {
+            log.error("Cannot read VK properties");
+        }
+    }
+
+    private static GroupActor initVkApi(VkApiClient apiClient, Properties properties) {
+        int groupId = Integer.parseInt(properties.getProperty("groupId"));
+        String token = properties.getProperty("token");
+        int serverId = Integer.parseInt(properties.getProperty("serverId"));
+        if (groupId == 0 || token == null || serverId == 0) throw new RuntimeException("Params are not set");
+        GroupActor actor = new GroupActor(groupId, token);
+
+        try {
+            apiClient.groups().setCallbackSettings(actor, serverId).messageNew(true).execute();
+        } catch (ApiException e) {
+            throw new RuntimeException("Api error during init", e);
+        } catch (ClientException e) {
+            throw new RuntimeException("Client error during init", e);
+        }
+
+        return actor;
+    }
+
+    private static Properties readProperties() throws FileNotFoundException {
+        InputStream inputStream = BotServer.class.getClassLoader().getResourceAsStream(PROPERTIES_FILE);
+        if (inputStream == null)
+            throw new FileNotFoundException("property file '" + PROPERTIES_FILE + "' not found in the classpath");
+
+        try {
+            Properties properties = new Properties();
+            properties.load(inputStream);
+            return properties;
+        } catch (IOException e) {
+            throw new RuntimeException("Incorrect properties file");
+        }
+    }
 }

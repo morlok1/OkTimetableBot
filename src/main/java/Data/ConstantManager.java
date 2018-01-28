@@ -30,6 +30,8 @@ public interface ConstantManager {
     String alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabvdefghijklmnopqrstuvwxyz0123456789";
     int hashLength = 10;
 
+    String PROPERTIES_FILE = "config.properties";
+
     static String getDayOfWeekByIndex(int index) {
         String[] dayOfWeek = {"Понедельник","Вторник","Среда","Четверг","Пятница","Суббота","Воскресенье"};
         return dayOfWeek[index];
