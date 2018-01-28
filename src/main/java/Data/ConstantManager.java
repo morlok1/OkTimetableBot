@@ -9,9 +9,11 @@ public interface ConstantManager {
 
     String baseUrl = "https://api.ok.ru/";
 
-    String serverURI = "http://sergey.medvedev.space";
+    String serverURI = "http://api.medvedev.space";
 
-    String endpointURI = "/forOkWebhooks";
+    String okEndpointURI = "/forOkWebhooks";
+
+    String vkEndpointURI = "/forVkWebhooks";
 
     String linkRequest = "Расписание";
 
@@ -23,7 +25,7 @@ public interface ConstantManager {
 
     int DAYS_IN_WEEK = 7;
 
-    int port = 10002;
+    int port = 10000;
 
     String alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabvdefghijklmnopqrstuvwxyz0123456789";
     int hashLength = 10;

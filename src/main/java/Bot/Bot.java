@@ -1,6 +1,7 @@
 package Bot;
 
 import Data.ConstantManager;
+import Data.PropertyManager;
 import Domain.GroupOfUser;
 import Domain.UsersTimetable;
 import org.slf4j.Logger;
@@ -22,7 +23,6 @@ public class Bot {
     private static Bot theInstance;
     private HashMap<String, GroupOfUser> groups;        //Хранилище расписаний
     private HashMap<String, String> activeUsersGroup;   //Хранилище соответствий групп и пользователей
-    private Properties properties;
 
 
     public static Bot getInstance() {
@@ -36,13 +36,6 @@ public class Bot {
     private Bot() {
         groups = new HashMap<>();
         activeUsersGroup = new HashMap<>();
-        properties = new Properties();
-        try {
-            properties.load(BotHandler.class.getResourceAsStream("/application.properties"));
-        } catch (IOException e) {
-            log.error("Failed to read application properties. Terminating application...");
-            System.exit(1);
-        }
 
     }
 
@@ -94,7 +87,7 @@ public class Bot {
             result = builder.toString();
         } else {
             log.warn("Access to the schedule that was not created");
-            result = properties.getProperty("timetableIsNotExist");
+            result = PropertyManager.getProperty("timetableIsNotExist");
         }
         return result;
     }
@@ -133,11 +126,7 @@ public class Bot {
     }
 
     public boolean findHash(String message) {
-        if (groups.containsKey(message)) {
-            return true;
-        }
-
-        return false;
+        return groups.containsKey(message);
     }
 
     public String findUser(String chatId) {

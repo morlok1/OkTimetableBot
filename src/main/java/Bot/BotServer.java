@@ -16,6 +16,7 @@ import java.net.InetSocketAddress;
 
 import static java.lang.System.exit;
 
+
 /**
  * Класс сервера, осуществляющий общение бота с сетью.
  * Работает с api ОК.
@@ -43,6 +44,11 @@ public class BotServer {
         server.bind(new InetSocketAddress(ConstantManager.port),10);
         server.createContext("/", new BotHandler(this));
         server.start();
+
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            log.info("Stop the server");
+            server.stop(0);
+        }));
 
         try {
             Retrofit retrofit = new Retrofit.Builder().baseUrl(ConstantManager.baseUrl).build();
@@ -84,7 +90,7 @@ public class BotServer {
      * Предварительно проверяет её наличие
      */
     private void setSubscribes() {
-        String endpoint = ConstantManager.serverURI + ":" + ConstantManager.port + ConstantManager.endpointURI;
+        String endpoint = ConstantManager.serverURI + ConstantManager.okEndpointURI;
         if (!checkSubscribes(endpoint)) {
             String message = "";
             try {
