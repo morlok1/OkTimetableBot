@@ -21,16 +21,21 @@ public class VKMain {
 
     private final static String PROPERTIES_FILE = "config.properties";
 
-    public static void VkStart(String[] args) throws Exception {
+    public static void startVK() throws Exception {
+
+        System.out.println("Start");
+
         Properties properties = readProperties();
 
         HttpTransportClient client = new HttpTransportClient();
         VkApiClient apiClient = new VkApiClient(client);
 
+        System.out.println("Start initialization");
         GroupActor actor = initVkApi(apiClient, readProperties());
+        System.out.println("Finish initialization");
         BotRequestHandler botHandler = new BotRequestHandler(apiClient, actor);
 
-        Server server = new Server(8080);
+        Server server = new Server(10000);
 
         server.setHandler(new RequestHandler(botHandler, properties.getProperty("confirmationCode")));
 

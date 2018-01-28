@@ -11,9 +11,9 @@ public interface ConstantManager {
 
     String serverURI = "http://api.medvedev.space";
 
-    String okEndpointURI = "/forOkWebhooks";
+    String okEndpointURI = "/forOKWebhooks";
 
-    String vkEndpointURI = "/forVkWebhooks";
+    String vkEndpointURI = "/forVKWebhooks";
 
     String linkRequest = "Расписание";
 

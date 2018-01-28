@@ -121,25 +121,6 @@ public class BotHandler implements HttpHandler {
                 break;
             }
         }
-
-/*        if (Strategy.getCommandByIndex(0).matches(message)) {
-            server.sendMessage(Strategy.getCommandByIndex(0).execute(chatId, bot), chatId);
-
-        } else if (Strategy.getCommandByIndex(1).matches(message)) {
-            server.sendMessage(Strategy.getCommandByIndex(1).execute(chatId, bot), chatId);
-
-        } else if (Strategy.getCommandByIndex(2).matches(message)) {
-            server.sendMessage(Strategy.getCommandByIndex(2).execute(chatId, bot), chatId);
-
-        } else if (Strategy.getCommandByIndex(3).matches(message)) {
-            server.sendMessage(Strategy.getCommandByIndex(3).execute(chatId, bot), chatId);
-
-        } else if (Strategy.getCommandByIndex(4).matches(message)) {
-            server.sendMessage(Strategy.getCommandByIndex(4).execute(chatId, bot), chatId);
-
-        } else if (Strategy.getCommandByIndex(5).matches(message)){
-            server.sendMessage(Strategy.getCommandByIndex(5).execute(chatId, bot), chatId);
-        }*/
     }
 
 
