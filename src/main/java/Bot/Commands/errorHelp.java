@@ -15,10 +15,10 @@ public class errorHelp implements CommandAction {
     }
 
     @Override
-    public String execute(String chatId, Bot bot) {
+    public String[] execute(String chatId, Bot bot) {
         //Отправляем информационное сообщение
         log.info("Information message to " + chatId + " sended.");
 
-        return PropertyManager.getProperty("mainInfo");
+        return new String[] {PropertyManager.getProperty("mainInfo")};
     }
 }

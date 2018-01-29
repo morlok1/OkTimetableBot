@@ -17,9 +17,9 @@ public class CommandActionResultTimetable implements CommandAction {
     }
 
     @Override
-    public String execute(String chatId, Bot bot) {
+    public String[] execute(String chatId, Bot bot) {
         log.info("Result timetable for " + chatId + " generated.");
-        return bot.getTimetable(chatId);
+        return new String[] {bot.getTimetable(chatId)};
 
     }
 }

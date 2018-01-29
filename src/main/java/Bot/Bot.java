@@ -73,13 +73,13 @@ public class Bot {
 
                 switch (employmentStates[i]) {
                     case FREE:
-                        builder.append(": Свободно \\n");
+                        builder.append(": Свободно \n");
                         break;
                     case ALMOSTFREE:
-                        builder.append(": Свободно, но с затруднениями \\n");
+                        builder.append(": Опоздают \n");
                         break;
                     case BUSY:
-                        builder.append(": Занято \\n");
+                        builder.append(": Занято \n");
                         break;
                 }
             }

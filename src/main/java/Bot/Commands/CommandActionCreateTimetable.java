@@ -18,8 +18,8 @@ public class CommandActionCreateTimetable implements CommandAction {
     }
 
     @Override
-    public String execute(String chatId, Bot bot) {
+    public String[] execute(String chatId, Bot bot) {
         log.info("New group for " + chatId + " created.");
-        return PropertyManager.getProperty("newTimetableCreated") + bot.generateNewGroup(chatId);
+        return new String[] {PropertyManager.getProperty("newTimetableCreated"), bot.generateNewGroup(chatId)};
     }
 }

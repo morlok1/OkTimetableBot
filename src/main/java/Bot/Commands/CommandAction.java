@@ -6,6 +6,6 @@ public interface CommandAction {
 
     boolean matches(String message);
 
-    String execute(String chatId, Bot bot);
+    String[] execute(String chatId, Bot bot);
 
 }

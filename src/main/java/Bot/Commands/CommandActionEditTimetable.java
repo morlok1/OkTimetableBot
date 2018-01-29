@@ -31,16 +31,18 @@ public class CommandActionEditTimetable implements CommandAction {
     }
 
     @Override
-    public String execute(String chatId, Bot bot) {
+    public String[] execute(String chatId, Bot bot) {
         if (bot.getActiveUsersGroup().containsKey(chatId)) {
             if (parseTimetableFromOk(message, chatId, bot.getActiveUsersGroup().get(chatId), bot)) {
-                return PropertyManager.getProperty("timetableEditCompleted");
+                return new String[] {PropertyManager.getProperty("timetableEditCompleted"), "Новое расписание:\n" + bot.getGroupByHash(bot.getActiveUsersGroup().get(chatId))
+                        .getUserById(chatId)
+                        .getTimetableString()};
             } else {
-                return PropertyManager.getProperty("syntaxError");
+                return new String[] {PropertyManager.getProperty("syntaxError")};
             }
 
         } else {
-            return PropertyManager.getProperty("authorizationError");
+            return new String[] {PropertyManager.getProperty("authorizationError")};
         }
     }
 
@@ -49,10 +51,10 @@ public class CommandActionEditTimetable implements CommandAction {
 
         for (int i=0; i<DAYS_IN_WEEK; i++) {
             if (message.contains(shortDayOfWeek[i])) {
+                state = message.substring(message.indexOf(shortDayOfWeek[i]) + 2, message.indexOf(shortDayOfWeek[i]) + 3);
                 try {
-                    state = message.substring(message.indexOf(shortDayOfWeek[i]) + 2, message.indexOf(shortDayOfWeek[i]) + 3);
-                    bot.getGroupByHash(hash).getUserById(chatID).setStateByDayIndex(i, Integer.parseInt(state));
-                } catch (Exception E) {
+                    bot.getGroupByHash(hash).getUserById(chatID).setStateByDayIndex(i, state);
+                } catch (IllegalStateException e) {
                     log.error("Cannot parse timetable message: " + message);
                     return false;
                 }

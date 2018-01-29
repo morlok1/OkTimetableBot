@@ -222,4 +222,16 @@ public class BotServer {
             throw new RuntimeException("Incorrect properties file");
         }
     }
+
+    public void sendOkMessages(String[] messages, String chatId) {
+        for (String message : messages) {
+                sendOkMessage(message, chatId);
+            }
+    }
+
+    public void sendVkMessages(String[] messages, String chatId) {
+        for (String message : messages) {
+            sendVkMessage(message, chatId);
+        }
+    }
 }

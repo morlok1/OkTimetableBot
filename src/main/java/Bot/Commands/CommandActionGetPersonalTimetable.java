@@ -18,17 +18,17 @@ public class CommandActionGetPersonalTimetable implements CommandAction {
     }
 
     @Override
-    public String execute(String chatId, Bot bot) {
+    public String[] execute(String chatId, Bot bot) {
 
         log.info("Send personal timetable to: " + chatId);
 
         if (bot.getActiveUsersGroup().containsKey(chatId)) {
-            return bot.getGroupByHash(bot.getActiveUsersGroup().get(chatId))
+            return new String[] {bot.getGroupByHash(bot.getActiveUsersGroup().get(chatId))
                     .getUserById(chatId)
-                    .getTimetableString();
+                    .getTimetableString()};
 
         } else {
-            return PropertyManager.getProperty("timetableGetAuthorizationError");
+            return new String[] {PropertyManager.getProperty("timetableGetAuthorizationError")};
         }
     }
 }

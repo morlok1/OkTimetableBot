@@ -28,7 +28,7 @@ public class CommandActionAuthorizationByHash implements CommandAction {
     }
 
     @Override
-    public String execute(String chatId, Bot bot) {
+    public String[] execute(String chatId, Bot bot) {
         //Если пользователя в этом чате ещё нет - добавляем его туда
         if (bot.getGroupByHash(hash).getUserById(chatId) == null) {
             UsersTimetable.EmploymentState[] employmentStates = new UsersTimetable.EmploymentState[7];
@@ -39,6 +39,6 @@ public class CommandActionAuthorizationByHash implements CommandAction {
         }
         //Обновляем активное расписание для пользователя
         bot.getActiveUsersGroup().put(chatId, hash);
-        return PropertyManager.getProperty("authorizationComplete");
+        return new String[] {PropertyManager.getProperty("authorizationComplete")};
     }
 }

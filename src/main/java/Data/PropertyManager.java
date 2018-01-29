@@ -12,7 +12,6 @@ public class PropertyManager {
     private static final Logger log = LoggerFactory.getLogger(PropertyManager.class);
     private static Properties properties;
 
-    //????????? ??????
     static {
         properties = new Properties();
         try {

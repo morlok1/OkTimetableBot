@@ -52,12 +52,12 @@ public class BotHandler implements HttpHandler {
             //Отвечаем в ОК
             log.info("Come message from OK");
             RequestData requestData = parseMessageFromOk(body);
-            server.sendOkMessage(botWork(requestData), requestData.getChatId());
+            server.sendOkMessages(botWork(requestData), requestData.getChatId());
 
         } else if (httpExchange.getRequestURI().toString().equals(vkEndpointURI)) {
             log.info("Come message from VK");
             RequestData requestData = parseMessageFromVk(body);
-            server.sendVkMessage(botWork(requestData), requestData.getChatId());
+            server.sendVkMessages(botWork(requestData), requestData.getChatId());
         } else {
             //Это какой-то странный запрос - пока просто игнорим и светим в лог
             log.warn("Unexpected request (probably, the Chinese)");
@@ -155,8 +155,8 @@ public class BotHandler implements HttpHandler {
      * @param requestData
      * @return
      */
-    private String botWork(RequestData requestData) {
-        String result = "Unknown request format";
+    private String[] botWork(RequestData requestData) {
+        String result[] = {"Unknown request format"};
         for (int i=0; i<Strategy.countOfCommand(); i++) {
             if (Strategy.getCommandByIndex(i).matches(requestData.getMessage())) {
                 result = Strategy.getCommandByIndex(i).execute(requestData.getChatId(), bot);

@@ -33,8 +33,22 @@ public class UsersTimetable {
         return employments[day];
     }
 
-    public void setStateByDayIndex(int index, int state) {
-        employments[index] = getEmploymentStateByIndex(state);
+    public void setStateByDayIndex(int index, String state) {
+        switch (state) {
+            case "+":
+                employments[index] = getEmploymentStateByIndex(2);
+                break;
+            case "=":
+                employments[index] = getEmploymentStateByIndex(1);
+                break;
+            case "-":
+                employments[index] = getEmploymentStateByIndex(0);
+                break;
+                default:
+                throw new IllegalStateException();
+        }
+
+        //employments[index] = getEmploymentStateByIndex(state);
     }
 
     private EmploymentState getEmploymentStateByIndex(int index) {
@@ -58,13 +72,13 @@ public class UsersTimetable {
 
             switch (employments[i]) {
                 case FREE:
-                    builder.append(": Свободно \\n");
+                    builder.append(": Свободен \n");
                     break;
                 case ALMOSTFREE:
-                    builder.append(": Свободно, но с затруднениями \\n");
+                    builder.append(": Опоздаю \n");
                     break;
                 case BUSY:
-                    builder.append(": Занято \\n");
+                    builder.append(": Занят \n");
                     break;
             }
         }
